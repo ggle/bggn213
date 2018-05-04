@@ -6,3 +6,5 @@ output: html_document
 ---
 
 Hello, GitHub
+
+Staging the third commit!
