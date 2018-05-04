@@ -78,7 +78,7 @@ s1 <- read.pdb("4AKE")
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ```r
@@ -138,7 +138,7 @@ graph_protein("4AKE")
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
@@ -170,7 +170,7 @@ for (protein in test_array) {
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -179,7 +179,7 @@ for (protein in test_array) {
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1AKE.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -194,7 +194,7 @@ for (protein in test_array) {
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1E4Y.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1E4Y.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-6-2.png)<!-- -->![](class_6_files/figure-html/unnamed-chunk-6-3.png)<!-- -->
@@ -255,7 +255,7 @@ get_bfactor("4AKE")
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -293,7 +293,7 @@ get_bfactor("1AKE")
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -362,7 +362,7 @@ Testing ways to iterate through a vector of B-Factors
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -372,7 +372,7 @@ Testing ways to iterate through a vector of B-Factors
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1E4Y.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1E4Y.pdb exists. Skipping download
 ```
 
 
@@ -427,7 +427,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -436,7 +436,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1AKE.pdb exists. Skipping download
 ```
 
 ```
@@ -446,7 +446,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1E4Y.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1E4Y.pdb exists. Skipping download
 ```
 
 ```
@@ -455,7 +455,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/4AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/4AKE.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
@@ -466,7 +466,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1AKE.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1AKE.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-13-2.png)<!-- -->
@@ -481,7 +481,7 @@ bfactor_prot_graph2(test_array)
 
 ```
 ## Warning in get.pdb(file, path = tempdir(), verbose = FALSE): C:\Users\gary_
-## \AppData\Local\Temp\RtmpUhFxVr/1E4Y.pdb exists. Skipping download
+## \AppData\Local\Temp\RtmpOU6R0i/1E4Y.pdb exists. Skipping download
 ```
 
 ![](class_6_files/figure-html/unnamed-chunk-13-3.png)<!-- -->![](class_6_files/figure-html/unnamed-chunk-13-4.png)<!-- -->
