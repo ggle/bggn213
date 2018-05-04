@@ -1,0 +1,271 @@
+---
+title: "Class 6 Hands-on"
+author: "Gary Le"
+date: "April 20, 2018"
+output: 
+  html_document:
+    code_folding: show
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Can you improve this analysis code?
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+Code snippet of main workflow
+```{r}
+library(bio3d)
+#Input:
+s1 <- read.pdb("4AKE")
+
+#Manipulating Input:
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s1.b <- s1.chainA$atom$b
+
+#Output:
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+
+```
+
+
+Function of above code v1
+```{r}
+library(bio3d)
+
+graph_protein <- function(accession) {
+  #Purpose:
+  #  Graphs the B-Factor of each Alpha-Carbon (CA) of a protein with Secondary Structure  
+  #  overlayed.
+  #  B-Factor is the uncertainty of protein atom position in X-ray crystallography i.e. how    #  much the position of the protein wiggles.
+  
+  #Inputs:
+  #  accession: Takes the PDB accession number of a protein
+  
+  #Outputs:
+  #  Plots the CA position vs. B-Factor of protein w/ sse
+  
+  s <- read.pdb(accession)
+  
+  #Trim the large PDB object and limits to alpha-carbons of Chain A
+  s.chainA <- trim.pdb(s, chain="A", elety="CA")
+  
+  #Access the B-factors of each alpha-carbon
+  s.b <- s.chainA$atom$b
+  
+  #Plot the B-factor against the Secondary Structure Element (SSE) of Chain A
+  plotb3(s.b, sse=s.chainA, typ="l", ylab="Bfactor")
+  
+}
+```
+
+Testing function v1 to see if output matches the code snippet.
+
+Obesrvation: Function has similar output to single accession.
+```{r}
+graph_protein("4AKE")
+```
+
+Testing function on a vector of inputs
+Errors: Cannot take input vector of length > 1. i.e. Function is not vectorized.
+```{r}
+#graph_protein(c("4AKE","1AKE","1E4Y"))
+```
+
+Vectorize function by including for loop
+Success! Output matches original, redundant code.
+```{r}
+#Goal
+#graph_multi_prot <- function(){blah}
+
+test_array <- c("4AKE","1AKE","1E4Y")
+
+for (protein in test_array) {
+  graph_protein(protein)
+}
+
+```
+
+Vectorized Bfactor Graph function V1
+```{r}
+bfactor_prot_graph <- function(accession_vectors) {
+  #Purpose:
+  #  Graph Residue Bfactors of multiple proteins
+  
+  #Inputs:
+  #  accession_vector = vector of stringified PDB accession IDs
+  
+  for (protein in accession_vectors) {
+    graph_protein(protein)
+  }
+}
+
+```
+
+
+
+Better atomization of functions for increased modularity
+```{r}
+get_bfactor <- function(accession) {
+  #Purpose:
+  #  Return the bfactor for each residue of a PDB accession ID
+  
+  #Inputs:
+  #  accession: Takes the PDC accession number of a protein
+  
+  #Outputs:
+  #  Vector of B-Factor of each protein residue stored at its corresponding index
+  
+  #Reading PDB accession ID to retrieve data.
+  s <- read.pdb(accession)
+  
+  #Trim the large PDB object and limits to alpha-carbons of Chain A
+  s.chainA <- trim.pdb(s, chain="A", elety="CA")
+  
+  #Access the B-factors of each alpha-carbon
+  s.b <- s.chainA$atom$b
+  
+  return(s.b)
+}
+```
+
+Testing new function. Note: not vectorized
+```{r}
+get_bfactor("4AKE")
+get_bfactor("1AKE")
+```
+
+
+Graphing Protein v2 with more descriptive name
+```{r}
+graph_bfactor <- function(accession) {
+  #Purpose:
+  #  Graphs the B-Factor of each Alpha-Carbon (CA) of a protein with Secondary Structure  
+  #  overlayed.
+  #  B-Factor is the uncertainty of protein atom position in X-ray crystallography i.e. how    #  much the position of the protein wiggles.
+  
+  #Inputs:
+  #  accession: Takes the PDC accession number of a protein
+  
+  #Outputs:
+  #  Plots the CA position vs. B-Factor of protein w/ sse
+  
+  #Getting B-factors of each residue
+  get_bfactor(accession = accession)
+  
+  #Plot the B-factor of each residue with the Secondary Structure Element (SSE) of Chain A
+  plotb3(s.b, sse=s.chainA, typ="l", ylab="Bfactor")
+  
+}
+```
+
+Testing ways to iterate through a vector of B-Factors
+```{r}
+  for (protein in 2:length(test_array)) {
+    get_bfactor(test_array[protein])
+  }
+```
+
+
+Modifying the above function to improve datahandling.
+```{r}
+bfactor_prot_graph2 <- function(accession_vectors,
+                                individ.plot = TRUE) {
+  #Purpose:
+  #  Graph Residue Bfactors of multiple proteins
+  
+  #Inputs:
+  #  accession_vectors = vector of stringified PDB accession IDs
+  #  individ.plot = Boolean that graphs individual graphs of each protein
+
+  #Outputs:
+  #  Composite plot of the B-factor of each residue of all proteins listed in   
+  #  accession_vectors
+  #   
+  #  Individual plots of the B-Factor of each residue for all proteins in accession_vectors
+  
+  #Graph the B-factor of the 1st PDB accession ID to initialize the plot
+  s0 <- get_bfactor(accession_vectors[1])
+  plot(s0, typ='l', xlab = "Residue", ylab = "B-Factor", main = "Composite")
+  
+  #Determining remaining lines to be plotted
+  remaining <- length(accession_vectors)
+  
+  #Add the subsequent lines
+  for (protein in 2:remaining) {
+    s <- get_bfactor(accession_vectors[protein])
+    lines(s, typ='l', col = c(protein))
+  } #end of adding lines
+  
+  ##Graphing individual plots
+  if(individ.plot){
+    for (protein in accession_vectors) {
+      graph_protein(protein)
+    }
+  } #end of individual plots
+} #end of function
+
+```
+
+```{r}
+bfactor_prot_graph2(test_array)
+```
+
+
+### Homework: Other ways to compare B-Factor of Protein Residues
+
+Useful functions:
+```{r}
+#hclust() gives a graphable object that returns a hierarchical structure of deviations between objects
+
+#dist() computes a distance matrix between rows of a data matrix i.e. how different is one residue of one protein to the same # residue of another protein
+
+#rbind() ol' reliable. Binds the rows of multiple matrices together. In this case, makes the different protein residues comparable
+```
+
+Hardcode test:
+```{r}
+hc <- hclust( dist( rbind(s1.b, s2.b, s3.b) ) )
+plot(hc)
+```
+
+Hardcode test #2
+```{r}
+# hc2 <- hclust( dist( rbind(s1.b, s2.b) ) )
+# plot(hc2)
+```
+hclust needs 3 objects for comparison, rows in this case.
+
+Results of dendogram show that S1 and s3 are most similar in their Bfactor trends which is to be expected. s1 and s3 are both +drug while s2 is -drug.
+
+Try same results with hclustplot() bio3d function
+```{r}
+hc <- hclust( dist( rbind(s1.b, s2.b, s3.b) ) )
+
+#Changes the label of each index to be the accession ID rather than variable
+#hc$labels <- test_array
+
+#hclustplot(hc)  doesn't work. Missing a k that needs to be btwn 1-3?
+
+hclustplot(hc,3,hc$height) #plots with 3 colors
+
+```
+Continue to troubleshoot. The hclustplot() doesn't have the same heights as the plot(hc).
