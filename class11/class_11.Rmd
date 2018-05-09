@@ -71,7 +71,7 @@ Q2: Type HIV in the PDB website search box on the home page and determine how ma
 HIV-1 protease structures are in the current PDB?
 793 structures
 
-### Bio3D Visualization
+### Section 3: Bio3D Visualization
 
 ```{r}
 #Loading library
@@ -134,3 +134,16 @@ pdb.protein <- trim(pdb, inds = inds.p)
 write.pdb(pdb.ligand, file = "1hsg_ligand") #Ligand file
 write.pdb(pdb.protein, file = "1hsg_protein") # Protein file
 ```
+
+### Section 4:
+
+* MUSCLE downloaded and can be used by R to align PDB files locally
+
+```{r}
+# Download some example PDB files
+ids <- c("1TND_B","1AGR_A","1TAG_A","1GG2_A","1KJY_A","4G5Q_A")
+files <- get.pdb(ids, split = TRUE) #Getting files and splitting by chains
+
+#PDB files are downloaded and subdirectory created to store chains.
+```
+
