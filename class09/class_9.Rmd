@@ -1,0 +1,241 @@
+---
+title: "class_9"
+author: "Gary Le"
+date: "May 2, 2018"
+output: 
+  html_document:
+    code_folding: show
+    keep_md: yes
+---
+
+```{r}
+#Importing Data
+wisc.df <- read.csv("https://bioboot.github.io/bggn213_S18/class-material/WisconsinCancer.csv")
+
+#Not importing all data. Removing columns 1,2, and 33 b/c columns are non-numeric
+##N.B. Column 33 in particular is column "X" of NA values
+wisc.data <- as.matrix(wisc.df[,3:32])
+
+#Naming dataset with id's from original data frame
+rownames(wisc.data) <- wisc.df$id
+
+diagnosis <- as.numeric(wisc.df$diagnosis == "M")
+```
+
+
+Characterizing dataset
+
+Q1. How many observations are in this dataset?
+```{r}
+nrow(wisc.data)
+dim(wisc.data)
+```
+
+
+Q2. How many variables/features in the data are suffixed with _mean?
+```{r}
+
+grep("_mean", colnames(wisc.data), value = TRUE)
+
+```
+
+Q3. How many of the observations have a malignant diagnosis?
+```{r}
+#212 have malignant diagnosis
+table(wisc.df$diagnosis)
+```
+
+##Section 2
+
+Check to see if data needs to be scaled by checking Mean and Stdev of each column
+```{r}
+# Check column means and standard deviations
+colMeans(wisc.data)
+
+#apply() will find the standard deviation of each column
+apply(wisc.data,2,sd)
+
+```
+
+```{r}
+#type = "h" is a height plot
+#Plotting the means of each column
+plot(colMeans(wisc.data), type = "h")
+```
+The different means have varying magnitudes. i.e. not directly comparable, so data needs to be scaled.
+
+scaling data during PCA
+```{r}
+#simple means of scaling by using prcomp
+wisc.pr <- prcomp(wisc.data, scale = TRUE)
+
+#error arises. Says that there is a constant column or column of all zeros. From column "X".
+#To resolve, remove the column "X" when importing the data.
+
+#Using summary function to inspect the PCA data
+summary(wisc.pr)
+```
+
+Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+From summary, 3 components
+
+Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+
+###Plotting the PCA
+```{r}
+#diagnosis = 1 or 0, add 1 in col b/c white is col = 0
+## Black dots are benign, red are malginant
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col = diagnosis+1, xlab = "PC1", ylab = "PC2")
+```
+
+We see that there are groupings of benign tumors, but cancers are variable. However, we know that at least 3 of the principal components are needed to visualize 70% of our data, so we need more plots.
+
+#### Scree-plot of the PCA
+```{r}
+#In order to make a scree plot, we need to condense the columns of our PCA to make it appear
+
+#Storing the variance of the PCA by squaring the standard of deviation
+wisc.pr.var <- (wisc.pr$sdev^2)
+
+pve <- wisc.pr.var/ sum(wisc.pr.var)
+
+plot(pve, xlab = "Principal Components", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "o")
+```
+
+```{r}
+#Bar plot of variance
+
+#las = 2 makes data labels vertical
+barplot(pve, names.arg = paste0("PC", 1:length(pve)), las = 2, axes = FALSE, xlab = "Principal Component", ylab = "Percent of Variance Explained (%)")
+
+#Adding own axes. Axis 2 = vertical axis
+#'at' tells where to put the ticks
+#'labels' that are rounded to the 2 digit
+axis(2, at=pve, labels=round(pve,2)*100 )
+```
+This plot shows how much variance each component explains, but what if we wanted to know how many components we would need to explain a certain % variance? We can us a cumulative sum.
+
+```{r}
+# Plot cumulative proportion of variance explained
+plot(cumsum(pve), xlab = "Principal Component", 
+     ylab = "Cumulative Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+abline(h = 0.7, col = 2)
+abline(h = 0.8, col = 3)
+```
+
+```{r}
+#Using par() to make a combined figure
+par(mfrow = c(1,2))
+
+#individ contrib.
+plot(pve, xlab = "Principal Components", ylab = "Proportion of Variance Explained", ylim = c(0,1), type = "o")
+#cumsum
+plot(cumsum(pve), xlab = "Principal Component", 
+     ylab = "Cumulative Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+
+##Hierarchical Clustering of the Data
+```{r}
+# Scale the wisc.data data: data.scaled
+data.scaled <- scale(wisc.data)
+
+#Calculating distribution matrix of data
+data.dist <- dist(data.scaled)
+
+#Clustering data by hierarchy
+wisc.hclust <- hclust(data.dist, method = "complete")
+```
+
+Plotting the Hclust
+```{r}
+#Plotting
+plot(wisc.hclust, col = cutree(wisc.hclust, k = 4))
+abline(h = 19, col = "red", lwd = 1)
+```
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k = 4)
+```
+
+How do these groups match our diagnostics data? Does the data match the diagnosis from professional doctors?
+```{r}
+#shows how many benign and malignant
+table(diagnosis)
+
+#How many are in each cluster. Cross-tabulation. Shows how many of each cluster are benign = 0 or malignant = 1
+table(wisc.hclust.clusters, diagnosis)
+```
+Results show that the results aren't too horrible. It can Mostly distinguish between clusters 1 and 3. But 4 clusters are too much.
+
+Clustering results in a different way: Kmeans. K-clustering works by relatedness and minimizing the cluster variance.
+```{r}
+#Clustering with K-means. Still keeping 4 clusters
+wisc.km <- kmeans(data.scaled, centers= 4, nstart= 20)
+
+#wisc.km$cluster is a vector of the cluster each data belongs to
+table(wisc.km$cluster, diagnosis)
+```
+Results look cleaner for clusters 1,2, and 3. Although 3 still looks small. The clustering can't distinguish between cases in cluster 4. It's about 50:50 whether its Benign or Malignant. 4 clusters are still too much
+
+Try again with 2 clusters
+```{r}
+wisc.km <- kmeans(data.scaled, centers= 2, nstart= 20)
+table(wisc.km$cluster, diagnosis)
+```
+We see that the model can caputre ~80% accuracy. Which is not that great for all the false-negative ppl that wold go untreated
+
+###Trying to cluster the data based of PCA rather than actual Data
+```{r}
+## Use the distance along the first 7 PCs for clustering i.e. wisc.pr$x[, 1:7]
+## We're using the 1st 7 columns, b/c 7 PCs will capture 90% of the variance
+wisc.pr.hclust <- hclust(dist(wisc.pr$x[,1:7]), method = "ward.D2")
+
+#plotting the clustered PCA
+plot(wisc.pr.hclust)
+```
+
+Cross-tabulating the PCA H-cluster. Clustering off the PCA should better describe the observations than the clustering off the raw data set.
+```{r}
+
+#Now to cluster the data into 2 clusters again based off the PCA
+wisc.pr.hclust.clusters <- cutree(wisc.pr.hclust, k = 2)
+
+#Cross-tabulating PCA clusters with expert diagnosis
+table(wisc.pr.hclust.clusters, diagnosis)
+```
+
+Visual comparison of the PCA-Cluster Diagnosis versus original data
+```{r}
+par(mfrow = c(2,1))
+
+#original plot with colors based of Diagnosis matrix
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col = diagnosis+1, xlab = "PC1", ylab = "PC2")
+
+#Plot of data with colors based of PCA clustering
+plot(wisc.pr$x[,1:2], col = wisc.pr.hclust.clusters, xlab = "PC1", ylab = "PC2")
+```
+
+#Predicting Malignancy of New Samples
+```{r}
+#import new data
+url <-  "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+
+#Use the predict() function to predict the PC scores of the new data based off the PCs of the original data
+npc <- predict(wisc.pr, newdata = new)
+
+plot(wisc.pr$x[,1:2], col = wisc.pr.hclust.clusters)
+points(npc[,1], npc[,2], col = c("purple","blue"), pch = 16, cex = 1.5)
+```
+The model predicts that patient 1 has malignant cancer and patient 2 has benign tumors.
+
+Recording Version Info for Future Reference.
+```{r}
+sessionInfo()
+```
+

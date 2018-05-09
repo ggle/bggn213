@@ -1,0 +1,310 @@
+---
+title: "class_8"
+author: "Gary Le"
+date: "April 27, 2018"
+output: 
+  html_document:
+    code_folding: show
+    keep_md: yes
+---
+
+##K-mean
+```{r}
+# Generate some example data for clustering
+
+#generate a random collection of xy points from a normal distribution
+tmp <- c(rnorm(30,-3), rnorm(30,3))
+
+#creates a group of two clusters, with the 2nd cluster being the inverted points
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x)
+```
+Visual inspection shows that there are 2 clusters w/ ~30 points per cluster.
+
+```{r}
+km <- kmeans(x, centers = 2, nstart = 20)
+km
+```
+
+Inspect/print the results
+Q. How many points are in each cluster?
+```{r}
+km$size
+```
+
+Q. What ‘component’ of your result object details
+ - cluster size?
+```{r}
+km$size
+```
+ 
+ - cluster assignment/membership?
+```{r}
+km$cluster
+```
+ 
+ - cluster center?
+```{r}
+km$centers
+```
+
+
+Plot x colored by the kmeans cluster assignment and
+ add cluster centers as blue points
+```{r}
+plot(x, col = km$cluster, pch = 16)
+points(km$centers, col = "blue", pch = 18)
+```
+ 
+## Hierarchical Clustering
+
+To start, we need to calculate point (dis)similarities. For now, we're using Euclidean Distance (sqrt(SS))
+```{r}
+#Cannot be viewed b/c distributions are not dataframes
+dist_matrix <- dist(x)
+
+#If we check the class of dist_matrix
+is.matrix(dist_matrix) #Returns false
+class(dist_matrix)
+
+#View(as.matrix(dist_matrix))
+
+#We can view the dimensions of the distribution by forcing it into a matrix
+dim(as.matrix(dist_matrix))
+```
+
+Hierarcical Clustering of the matrix
+```{r}
+hc <- hclust(d = dist_matrix)
+```
+
+How to view the clustering?
+```{r}
+#printing out the result isn't very useful
+hc
+
+class(hc) #it'sits own class
+```
+
+Plotting a h-cluster returns a tree (dendrogram)
+```{r}
+plot(hc)
+```
+
+###Cutting the Dendrogram at different heights will determin how many clusters there are
+
+```{r}
+#Visual plot of cutting the tree at h = 6 produces two clusters
+plot(hc)
+abline(h = 6, col = "red")
+```
+
+Cutting the tree into groups
+```{r}
+#Cut tree can be given 2 types of values: 
+#  h = what height to cut the tree
+#  k = how many clusters to cut the tree
+grps <- cutree(hc, h = 6)
+table(grps)
+```
+
+Plotting the original data X with colored groups now
+```{r}
+plot(x, col = grps)
+```
+
+Plots of X with different clusters
+```{r}
+#4 clusters
+plot(x, col = cutree(hc, k = 4))
+```
+
+```{r}
+#6 clusters
+plot(x, col = cutree(hc, k = 6))
+```
+
+### More hierarchical clustering practice
+```{r}
+# Step 1. Generate some example data for clustering
+x <- rbind(
+ matrix(rnorm(100, mean=0, sd = 0.3), ncol = 2), # c1
+ matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2), # c2
+ matrix(c(rnorm(50, mean = 1, sd = 0.3), # c3
+ rnorm(50, mean = 0, sd = 0.3)), ncol = 2))
+colnames(x) <- c("x", "y")
+
+# Step 2. Plot the data without clustering
+plot(x)
+
+# Step 3. Generate colors for known clusters
+# (just so we can compare to hclust results)
+col <- as.factor( rep(c("c1","c2","c3"), each=50) )
+plot(x, col=col)
+```
+
+Q. Use the dist(), hclust(), plot() and cutree()
+ functions to return 2 and 3 clusters
+```{r}
+#Create distance matrix
+dist_ex <- dist(x)
+
+#Cluster with the complete method
+hc_ex <- hclust(dist_ex)
+
+#Initial plot
+plot(hc_ex)
+```
+Cutting tree and plotting original data
+```{r}
+#2 clusters
+plot(x, col = cutree(hc_ex, k = 2))
+```
+
+```{r}
+#3 clusters
+plot(x, col = cutree(hc_ex, k = 3))
+```
+
+Q. How does this compare to your known 'col' groups?
+```{r}
+#The h-clustering doesn't match what we know of the data. Clusters don't overlap.
+
+#True Plot
+plot(x, col = col)
+
+#HC Plot with 3 clusters. The clusters now have vastly diff sizes.
+plot(x, col = cutree(hc_ex, k = 3))
+
+table(cutree(hc_ex, k = 3)) #showing number of points in each group
+
+```
+
+## Principal Component Analysis
+
+```{r}
+## You can also download this file from the class website!
+mydata <- read.csv("https://tinyurl.com/expression-CSV",
+  row.names=1)
+
+head(mydata) 
+```
+
+To use prcomp() we need to have observations as rows, so flip the matrix
+```{r}
+#Use the function t() for transpose
+
+#scale normalizes data
+pca <- prcomp(t(mydata), scale = TRUE)
+
+
+#Great! so what's in pca?
+attributes(pca)
+```
+
+The Principal Components are stored as columns in "x"
+```{r}
+## A basic PC1 vs PC2 2-D plot
+plot(pca$x[,1], pca$x[,2]) 
+```
+
+To see how much variance each PC captures, we have to do a little work. prcomp() returns the standard of deviation which is the square root of variance so...
+```{r}
+#computing variance matrix
+pca.var <- pca$sdev^2
+
+#computing vector for variance of each PC
+pca.var.per <-  round(pca.var
+                      /sum(pca.var)*100, 1)
+
+pca.var.per
+```
+
+Make a scree plot for the PCs' variance
+```{r}
+#scree
+barplot(pca.var.per, main="Scree Plot",
+ xlab="Principal Component", ylab="Percent Variation")
+```
+
+```{r}
+#Separates the columns into two clusters by the first two characters in the column names
+as.factor( substr(colnames(mydata),1,2))
+
+## A vector of colors for wt and ko samples
+colvec <- as.factor( substr( colnames(mydata), 1, 2) )
+plot(pca$x[,1], pca$x[,2], col=colvec, pch=16,
+  xlab=paste0("PC1 (", pca.var.per[1], "%)"),
+  ylab=paste0("PC2 (", pca.var.per[2], "%)")) 
+```
+
+### Hands-on example
+
+Input new data
+```{r}
+#Load in data
+uk.data <- read.csv("https://bioboot.github.io/bggn213_S18/class-material/UK_foods.csv")
+
+#csv has a first column of names so...
+
+#Set the row names to the entries in column 1 as it should
+rownames(uk.data) <- uk.data[,1]
+
+#remove the first column from the dataset by...
+uk.data <- uk.data[,-1]
+```
+
+Insert a nice table into our knitted HTML document by...
+
+```{r}
+knitr::kable(uk.data, caption="The full UK foods data table")
+```
+
+Heatmap of the data
+```{r}
+#par(mar=c(20, 4, 4, 2))
+#turn the data frame into a simple matrix
+heatmap(as.matrix(uk.data))
+```
+No strong pattern emerges from this arrangement of the heat map
+
+PCA analysis of the food data
+```{r}
+uk.pca <- prcomp(t(uk.data), scale = FALSE)
+
+summary(uk.pca)
+```
+
+Finding Percent Variance of the PCs
+```{r}
+uk.pca.var <- uk.pca$sdev^2
+
+uk.pca.var.per <-  round(uk.pca.var/
+                           sum(uk.pca.var)*100,1)
+uk.pca.var.per
+```
+
+Scree Plot of PCs
+```{r}
+barplot(uk.pca.var.per, xlab = "Principal Component", ylab = "Percent Variance (%)", main = "Scree Plot")
+```
+
+Plotting the PCA
+```{r}
+plot(uk.pca$x[,1], uk.pca$x[,2], 
+     xlab= paste0("PC1(",uk.pca.var.per[1],"%)"), 
+     ylab= paste0("PC2(",uk.pca.var.per[2],"%)"),
+     xlim=c(-270,500))
+text(uk.pca$x[,1], uk.pca$x[,2], colnames(uk.data))
+```
+
+Loading Plot of the data, showing the influence of each category on Ireland
+```{r}
+## Lets focus on PC1 as it accounts for > 90% of variance 
+par(mar=c(10, 4, 4, 2))
+barplot( uk.pca$rotation[,1], las=2 )
+
+#Biplot of data
+biplot(uk.pca)
+```
+
