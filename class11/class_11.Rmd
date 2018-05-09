@@ -1,0 +1,136 @@
+---
+title: "Class 11"
+author: "Gary Le"
+date: "May 9, 2018"
+output: github_document
+---
+
+# Structural Bioinformatics
+
+## Notes
+
+* Paradigm: Sequence > Structure > Function
+    + Structure determines Function
+    + Structure is more conserved than sequence (e.g. viral proteins)
+    + But, structure is encoded by sequence
+
+* Energy Landscape
+    + shows the energy as a molecule over time.
+    + used to show the valleys where stable conformations exist
+  
+* Motivations
+    + Detailed understanding of molecular interactions; understand how the system is perturbed
+    + Theoretical and computational predictions to open new ideas for confirmation (e.g. DNA)
+  
+* Goals:
+    + Analyze
+    + Visualize
+    + Compare
+    + Predict
+    + Design
+    
+* Review:
+    + Secondary structures are brought out by interactions between residues and by Phi and Psi bond rotations
+    + Alpha Helix:
+        + Stabilized by "i and "i + 4"" residue interactions 
+    + Proteins are surrounded by water and other solvents, not empty space
+    
+## Hand-ons Practice
+
+### Section 1:
+
+Q1: Download a CSV file from the PDB site (accessible from “Analyze” -> “PDB Statistics” >
+“by Experimental Method and Molecular Type”. Move this CSV file into your RStudio project
+and determine the percentage of structures solved by X-Ray and Electron Microscopy. From
+the website what proportion of structures are protein?
+
+```{r}
+pdb.csv <- read.csv("Data Export Summary.csv", row.names = 1)
+
+#Finding percentage of proteins resolved by each method
+pdb.percent <- pdb.csv$Total/ sum(pdb.csv$Total) * 100
+
+#Conserving row names
+names(pdb.percent) <-  row.names(pdb.csv)
+
+#Output answer
+print(pdb.percent["X-Ray"])
+
+print(pdb.percent["Electron Microscopy"])
+
+```
+Overwhelmingly, most protein structures are resolved by X-Ray crystallography as expected.
+
+```{r}
+#Totaling numbers of proteins resolved by all methods
+sum(pdb.csv$Proteins)
+```
+
+
+Q2: Type HIV in the PDB website search box on the home page and determine how many
+HIV-1 protease structures are in the current PDB?
+793 structures
+
+### Bio3D Visualization
+
+```{r}
+#Loading library
+library("bio3d")
+```
+
+```{r}
+pdb <- read.pdb("1hsg.pdb")
+
+#Protein summary of HIV-1 Protease
+print(pdb)
+```
+Q6. How many amino acid residues are there in this pdb object and what are the two nonprotein
+residues?
+
+* 198 residues in the protein
+* The two non-protein residue types are water and the ligand MK1
+
+```{r}
+#Retrieving b-factor of alpha carbons
+pdb.calpha.bfac <-  pdb$atom$b[pdb$calpha]
+
+#Plotting beta-factors
+plot.bio3d(pdb.calpha.bfac, sse=pdb, typ="l", ylab = "B-Factor")
+
+```
+
+Trying to select only the protein atoms for viewing with VMD
+
+* Finding indices from the pdb file
+```{r}
+#Using Bio3D to find the indices of only the protein
+inds.p <- atom.select(pdb, "protein")
+
+#Finding indices for ligand
+inds.l <- atom.select(pdb, "ligand")
+```
+
+* Using indices to subset the main pdb file
+```{r}
+#Showing protein atoms
+pdb$atom[inds.p$atom,]
+```
+
+```{r}
+#Showing ligand atoms
+pdb$atom[inds.l$atom,]
+```
+
+Using the trim.pdb function to make a truncated PDB object
+```{r}
+#Creating PDB object w subset atoms for ligand
+pdb.ligand <- trim(pdb, inds = inds.l)
+pdb.ligand
+
+#Creating PDB object w subset atoms for protein
+pdb.protein <- trim(pdb, inds = inds.p)
+
+#Writing Files
+write.pdb(pdb.ligand, file = "1hsg_ligand") #Ligand file
+write.pdb(pdb.protein, file = "1hsg_protein") # Protein file
+```
