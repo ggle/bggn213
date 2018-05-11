@@ -147,3 +147,86 @@ files <- get.pdb(ids, split = TRUE) #Getting files and splitting by chains
 #PDB files are downloaded and subdirectory created to store chains.
 ```
 
+* Using pdbaln() to align PDB files
+```{r}
+# 'fit = TRUE' tells rmsd() to complete super imposition calculations
+pdbs.aln <- pdbaln(files = files, fit = TRUE, exefile = "C:/Users/gary_/Desktop/R_Bootcamp/bggn213_github/class11/muscle.exe")
+```
+
+### Section 5: Example Application on Adenylate Kinase (Adk)
+
+* Retrieving Adk seq from pdb ID
+```{r}
+#Amino acid sequence for chain A
+aa <- get.seq("1ake_A")
+```
+
+* BLAST search the sequence and store results
+```{r}
+#Blast results
+blast <- blast.pdb(aa)
+
+```
+
+* Plotting BLAST results
+
+```{r}
+hits <- plot(blast)
+```
+
+```{r}
+#Stores PDB id of blast hits among other things
+hits
+```
+
+* Using blast hits to retrieve corresponding pdb files
+```{r}
+#Storing PDB files in dir "pdbs"
+files.adk <- get.pdb(hits$pdb.id, path = "pdbs", split = TRUE, gzip =
+TRUE)
+
+#Aligning BLAST hits to ADK
+pdbs.adk <- pdbaln(files = files.adk, fit = TRUE, exefile = "C:/Users/gary_/Desktop/R_Bootcamp/bggn213_github/class11/muscle.exe")
+```
+
+* Graphing alignment
+```{r}
+# Vector containing PDB codes; Used to label alignment
+ids <- basename.pdb(pdbs.adk$id)
+
+# Draw schematic alignment
+plot(pdbs.adk, labels=ids)
+```
+We clearly see three groups of protein structures. They should show the different conformations of the proteins.
+
+* Calculating sequence conservation by Shannon Entropy by Residue
+```{r}
+# Calculate sequence conservation
+cons <- conserv(pdbs.adk, method="entropy22")
+
+# SSE annotations
+sse <- pdbs2sse(pdbs.adk, ind=1, rm.gaps=FALSE)
+
+# Plot conservation per residue
+plotb3(cons, sse=sse, ylab="Sequence entropy")
+```
+
+* Installing required packages for next step.
+```{r}
+install.packages("XML")
+install.packages("RCurl")
+
+library("XML")
+library("RCurl")
+```
+
+
+```{r}
+#Annotating the PDB files of the blast hits
+## N.B. Requires the XML and RCurl packages
+anno <- pdb.annotate(ids)
+
+#Printing out the unique source species
+print(unique(anno$source))
+```
+
