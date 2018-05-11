@@ -38,3 +38,16 @@ write.pdb(lig, "1hsg_ligand.pdb")
     + Spacing (angstrom) = 1.000
     + (x,y,z) Box size = (30, 30, 30)
     + (x,y,z) center = (16, 25, 4)
+
+* Scored docking with 1hsg_ligand using AutoDoc Vina
+    + config = config.txt
+    + log = log.txt
+    + Results stored in all.pdbqt
+    
+* Using Bio3D to prepare a PDB file for VMD to read
+```{r}
+library(bio3d) 
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
+```
+
