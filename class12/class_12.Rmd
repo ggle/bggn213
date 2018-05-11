@@ -51,3 +51,28 @@ res <- read.pdb("all.pdbqt", multi=TRUE)
 write.pdb(res, "results.pdb")
 ```
 
+* Computing Root Mean Square Deviation for each Result with ligand
+```{r}
+res <- read.pdb("all.pdbqt", multi=TRUE) 
+ori <- read.pdb("1hsg_ligand.pdbqt")
+rmsd(ori, res)
+```
+
+* RMSD shows that 1st result deviates by less than 0.6 angstroms.
+
+Q6. RMSD Based on heavy atoms only?
+
+```{r}
+#Grabbing indices of all non-hydrogen atoms
+inds <- atom.select(ori, "noh")
+
+#use $xyz to compare the x,y,z coordinates of the heavy-atoms in results vs the original ligand (in angstroms)
+rmsd(ori$xyz[, inds$xyz], res$xyz[, inds$xyz])
+```
+
+```{r}
+version <- sessionInfo()
+
+print(version)
+```
+
