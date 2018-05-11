@@ -1,0 +1,32 @@
+---
+title: "Class 12"
+author: "Gary Le"
+date: "May 11, 2018"
+output: github_document
+---
+
+
+# Hands-on
+
+* Loading in Bio3D and HIV-1 Protease
+```{r}
+library(bio3d)
+file.name <- get.pdb("1hsg")
+```
+
+* Reading PDB file into R
+```{r}
+hiv <- read.pdb(file.name)
+```
+
+* Trimming large PDB object into separate components for easier access
+```{r}
+#Trimming files by protein/ligand
+prot <- trim.pdb(hiv, "protein")
+lig <- trim.pdb(hiv, "ligand")
+
+#Writing out trimmed files
+write.pdb(prot, file="1hsg_protein.pdb")
+write.pdb(lig, "1hsg_ligand.pdb")
+```
+
