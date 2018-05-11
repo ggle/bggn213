@@ -30,3 +30,6 @@ write.pdb(prot, file="1hsg_protein.pdb")
 write.pdb(lig, "1hsg_ligand.pdb")
 ```
 
+* Preparing PDB files in AutoDocTools.
+    + AutoDocTools used to add Hydrogen and charge data back to the file since the visualization technique for the protein didn't have enough resolution to resolve hydrogens.
+    + But, we already know where hydrogens _should_ be based off of biochemical knowledge.
