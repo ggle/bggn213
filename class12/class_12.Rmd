@@ -33,3 +33,8 @@ write.pdb(lig, "1hsg_ligand.pdb")
 * Preparing PDB files in AutoDocTools.
     + AutoDocTools used to add Hydrogen and charge data back to the file since the visualization technique for the protein didn't have enough resolution to resolve hydrogens.
     + But, we already know where hydrogens _should_ be based off of biochemical knowledge.
+    
+* AutoDocTools Grid > GridBox settings
+    + Spacing (angstrom) = 1.000
+    + (x,y,z) Box size = (30, 30, 30)
+    + (x,y,z) center = (16, 25, 4)
