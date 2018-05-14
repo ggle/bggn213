@@ -230,3 +230,19 @@ anno <- pdb.annotate(ids)
 print(unique(anno$source))
 ```
 
+```{r}
+# Perform PCA & plot the results
+pc.xray <- pca(pdbs.adk)
+plot(pc.xray)
+```
+
+* Performing PCA on ADK groups and coloring H-cluster appropriately.
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs.adk)
+
+# Structure-based clustering
+hc.rd <- hclust(dist(rd))
+grps.rd <- cutree(hc.rd, k=3)
+```
+
