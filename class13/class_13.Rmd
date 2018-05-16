@@ -1,0 +1,80 @@
+---
+title: "Class 13"
+author: "Gary Le"
+date: "May 16th, 2018"
+output: github_document
+---
+
+## Loading in 1000 Genomes Project Data
+
+* Reading in data from Mexican in Los Angeles population (MXL) of 1000 Genome Projects 
+```{r}
+genotype <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+```
+
+* Sample should have 64 rows (patients)
+
+```{r}
+#Table out different genotypes
+table(genotype[,2])
+
+#Percent Frequency of Genotypes
+table(genotype[,2]) / nrow(genotype) * 100
+```
+
+* Loading Libraries to read sequencing scores from fastqsanger files
+```{r}
+library(seqinr)
+library(gtools)
+
+#test values
+phred <- asc( s2c("DDDDCDEDCDDDDBBDDDCC@") ) - 33
+phred 
+```
+
+## Analyzing Population Scale genomics data
+
+* Reading in and summarizing population data for SNP
+```{r}
+pop <- read.table("https://bioboot.github.io/bggn213_S18/class-material/
+rs8067378_ENSG00000172057.6.txt")
+
+summary(pop)
+
+```
+
+```{r}
+boxplot(pop)
+```
+
+* Checking expression value of samples with G|G homozygous and other genotypes
+    + Shows that A|A genotype has the highest expression followed by heterozygous
+```{r}
+summary(pop$exp[ pop$geno == "A/A"])
+summary(pop$exp[ pop$geno == "A/G"])
+summary(pop$exp[ pop$geno == "G/G"])
+
+```
+
+```{r}
+#Box plots of expression by genotype (exp ~ geno) from the population data.
+pop.box <- boxplot(exp ~ geno, data = pop, notch = TRUE)
+```
+
+* Fancy version of boxplot by ggplot2
+```{r}
+#install.packages("ggplot2")
+# N.B. ggplot only takes data frames
+library("ggplot2")
+
+#Customize graph aesthetic by modifying the aes() arguments.
+# N.B. aes() takes the input in the form of (factor,data)
+# N.B. the + geom_foo() tells ggplot which type of geometry our plot should have
+ggplot(pop, aes(geno,exp)) + 
+  geom_boxplot(notch = TRUE, outlier.shape = NA)
+```
+
+```{r}
+sessionInfo()
+```
+
