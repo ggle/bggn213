@@ -1,0 +1,236 @@
+---
+title: "Class 15"
+author: "Gary Le"
+date: "May 23, 2018"
+output: github_document
+---
+
+# Exploratory Gene Set Enrichment Analyses following Differential Expression Analysis
+
+
+* With gene enrichment analyses, matching ID's from one database to another can be time consuming.
+    + Some applications like unitprot and excel have tools to help, but we should invest in a more robust method for conversion.
+    
+## Hands-on
+
+```{r, echo = FALSE}
+library("DESeq2")
+```
+
+
+* Importing data for DE seq
+```{r}
+countLink <- "https://bioboot.github.io/bimm143_W18/class-material/GSE37704_featurecounts.csv"
+metaLink <- "https://bioboot.github.io/bimm143_W18/class-material/GSE37704_metadata.csv"
+
+#Importing metadata
+colData <-  read.csv(metaLink, row.names = 1)
+#Importing counts data
+countData <- read.csv(countLink, row.names = 1)
+```
+
+* Formatting count data to remove unnecessary "length" column and removing non-zero entries.
+```{r}
+#Remove 1st column
+countData <- as.matrix(countData[, -1])
+#Remove rows with a sum of zero
+countData <- countData[ rowSums(countData) > 1 ,]
+```
+
+* Setting up DESeq
+```{r}
+dds <-  DESeqDataSetFromMatrix(countData=countData,
+                             colData=colData,
+                             design=~condition)
+dds <-  DESeq(dds)
+```
+
+* Checking results
+```{r}
+res <- results(dds)
+res
+```
+
+* Reformating results
+```{r}
+mcols(res, use.names = TRUE) 
+```
+
+* Summarize results
+```{r}
+summary(res)
+```
+
+* Too many results, raising thresholds
+```{r}
+#Defining significant results as alpha < 0.05% and log2 threshold > 2
+resSig <- results(dds, alpha = 0.05, lfcThreshold = 2)
+summary(resSig)
+```
+
+* Can see that only 99 results are sig. rather than 4352
+
+* Alternative way to screen the results for the same alpha and log2 params.
+```{r}
+#Results that have alpha < 0.05%
+table(resSig$padj < 0.05)
+#Results that have log2 threshold > 2
+table(resSig$log2FoldChange > 2)
+
+#Crosstabulation of results
+table(resSig$padj < 0.05, resSig$log2FoldChange > 2)
+```
+
+* Redefine resSig to help order results for further analysis
+```{r}
+# Make a new results object 'resSig' with only significant genes
+resSig <- subset(res, padj < 0.05)
+
+# Order resSig by log2FoldChange
+# Print the first 10 strongest DOWN genes
+ord.down <- order(resSig$log2FoldChange)
+head(resSig[ ord.down, ], 10)
+```
+
+```{r}
+# Print the first 10 strongest UP genes
+ord.up <- order(resSig$log2FoldChange, decreasing = TRUE)
+head(resSig[ ord.up, ], 10)
+```
+
+* Organizing from ENSEMBLE to KEGG IDs
+```{r}
+# N.B. these are BioConductor pkgs.
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+```
+
+* This is the organism annotation package (“org”) for Homo sapiens (“Hs”), organized as an AnnotationDbi database package (“db”), using Entrez Gene IDs (“eg”) as primary key.
+
+* Adding SYMBOL, ENTREZ, and GENENAME IDs to results
+```{r}
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    column="SYMBOL",
+                    keytype="ENSEMBL",
+                    multiVals="first")
+
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    column="ENTREZID",
+                    keytype="ENSEMBL",
+                    multiVals="first")
+
+res$name =   mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    column="GENENAME",
+                    keytype="ENSEMBL",
+                    multiVals="first")
+
+# Displaying top 10 again
+head(res, 10)
+```
+
+### Section 2
+
+* First time install
+```{r}
+#source("http://bioconductor.org/biocLite.R")
+#biocLite( c("pathview", "gage", "gageData") )
+
+library(pathview)
+```
+
+```{r}
+library(gage)
+library(gageData)
+
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+
+# Signaling and Metabolic Pathway subset of KEGG pathways by ENTREZ ID
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+head(kegg.sets.hs, 3)
+```
+
+* GAGE fxn requires named vector of fold changes
+```{r}
+#Vector of fold changes from results
+foldchanges <-  res$log2FoldChange
+#Naming foldchanges by entrez ids from results
+names(foldchanges) <-  res$entrez
+
+head(foldchanges)
+```
+
+* GAGE results on the KEGG subset of genes
+```{r}
+# Get the results
+keggres <-  gage(foldchanges, gsets=kegg.sets.hs, same.dir=TRUE)
+```
+
+* Looking at head of each attribute in keggres
+```{r}
+lapply(keggres, head)
+```
+
+* Sanity check
+```{r}
+## Sanity check displaying all pathways data
+pathways = data.frame(id=rownames(keggres$greater), keggres$greater)
+head(pathways)
+```
+
+* Using pathways() to visualize our pathways
+```{r}
+#pathview(gene.data=foldchanges, pathway.id="hsa04110")
+```
+![](hsa04110.pathview.png)
+
+* Looking only at the 5 genes that had the greatest change
+```{r}
+## Focus on top 5 upregulated pathways here for demo purposes only
+keggrespathways <- rownames(keggres$greater)[1:5]
+
+# Extract the IDs part of each string
+keggresids <-  substr(keggrespathways, start=1, stop=8)
+keggresids
+```
+
+```{r}
+#pathview(gene.data=foldchanges, pathway.id=keggresids, species="hsa")
+```
+
+![](hsa04640.pathview.png)
+
+### Section 3: Using Gene Ontology to do bsically the same thing
+
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+* Again, we can see that most of the pathways are involved in cell development
+
+### Section 4: Useing Reactome
+
+* Outputting results from results as plain text by SYMBOL ID
+```{r}
+sig_genes <- res[res$padj <= 0.05 & !is.na(res$padj), "symbol"]
+print(paste("Total number of significant genes:", length(sig_genes)))
+```
+
+* Writing out plain text to file "significant_genes.txt"
+```{r}
+write.table(sig_genes, file="significant_genes.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+
+```
+
+* Analyze pathways by loading file to ![reactome](https://reactome.org/PathwayBrowser/#TOOL=AT)
+
