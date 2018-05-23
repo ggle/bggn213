@@ -3,6 +3,9 @@ Class 15
 Gary Le
 May 23, 2018
 
+Exploratory Gene Set Enrichment Analyses following Differential Expression Analysis
+===================================================================================
+
 -   With gene enrichment analyses, matching ID's from one database to another can be time consuming.
     -   Some applications like unitprot and excel have tools to help, but we should invest in a more robust method for conversion.
 
@@ -605,14 +608,10 @@ head(pathways)
 -   Using pathways() to visualize our pathways
 
 ``` r
-pathview(gene.data=foldchanges, pathway.id="hsa04110")
+#pathview(gene.data=foldchanges, pathway.id="hsa04110")
 ```
 
-    ## 'select()' returned 1:1 mapping between keys and columns
-
-    ## Info: Working in directory C:/Users/gary_/Desktop/R_Bootcamp/bggn213_github/class15
-
-    ## Info: Writing image file hsa04110.pathview.png
+![](hsa04110.pathview.png)
 
 -   Looking only at the 5 genes that had the greatest change
 
@@ -632,3 +631,91 @@ keggresids
 ```
 
 ![](hsa04640.pathview.png)
+
+### Section 3: Using Gene Ontology to do bsically the same thing
+
+``` r
+data(go.sets.hs)
+data(go.subs.hs)
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+
+    ## $greater
+    ##                                              p.geomean stat.mean
+    ## GO:0007156 homophilic cell adhesion       4.893044e-05  3.971869
+    ## GO:0060429 epithelium development         6.727999e-05  3.834578
+    ## GO:0007610 behavior                       2.171759e-04  3.534089
+    ## GO:0048729 tissue morphogenesis           2.471263e-04  3.498950
+    ## GO:0002009 morphogenesis of an epithelium 3.227727e-04  3.429293
+    ## GO:0016337 cell-cell adhesion             8.194676e-04  3.163087
+    ##                                                  p.val     q.val set.size
+    ## GO:0007156 homophilic cell adhesion       4.893044e-05 0.1337863      107
+    ## GO:0060429 epithelium development         6.727999e-05 0.1337863      478
+    ## GO:0007610 behavior                       2.171759e-04 0.2457053      404
+    ## GO:0048729 tissue morphogenesis           2.471263e-04 0.2457053      403
+    ## GO:0002009 morphogenesis of an epithelium 3.227727e-04 0.2567334      326
+    ## GO:0016337 cell-cell adhesion             8.194676e-04 0.3753986      318
+    ##                                                   exp1
+    ## GO:0007156 homophilic cell adhesion       4.893044e-05
+    ## GO:0060429 epithelium development         6.727999e-05
+    ## GO:0007610 behavior                       2.171759e-04
+    ## GO:0048729 tissue morphogenesis           2.471263e-04
+    ## GO:0002009 morphogenesis of an epithelium 3.227727e-04
+    ## GO:0016337 cell-cell adhesion             8.194676e-04
+    ## 
+    ## $less
+    ##                                             p.geomean stat.mean
+    ## GO:0000279 M phase                       1.475275e-16 -8.323757
+    ## GO:0048285 organelle fission             7.498096e-16 -8.160310
+    ## GO:0000280 nuclear division              2.135081e-15 -8.034815
+    ## GO:0007067 mitosis                       2.135081e-15 -8.034815
+    ## GO:0000087 M phase of mitotic cell cycle 5.927745e-15 -7.891754
+    ## GO:0007059 chromosome segregation        1.055849e-11 -6.988384
+    ##                                                 p.val        q.val
+    ## GO:0000279 M phase                       1.475275e-16 5.867170e-13
+    ## GO:0048285 organelle fission             7.498096e-16 1.490996e-12
+    ## GO:0000280 nuclear division              2.135081e-15 2.122805e-12
+    ## GO:0007067 mitosis                       2.135081e-15 2.122805e-12
+    ## GO:0000087 M phase of mitotic cell cycle 5.927745e-15 4.714928e-12
+    ## GO:0007059 chromosome segregation        1.055849e-11 6.998521e-09
+    ##                                          set.size         exp1
+    ## GO:0000279 M phase                            492 1.475275e-16
+    ## GO:0048285 organelle fission                  373 7.498096e-16
+    ## GO:0000280 nuclear division                   349 2.135081e-15
+    ## GO:0007067 mitosis                            349 2.135081e-15
+    ## GO:0000087 M phase of mitotic cell cycle      359 5.927745e-15
+    ## GO:0007059 chromosome segregation             141 1.055849e-11
+    ## 
+    ## $stats
+    ##                                           stat.mean     exp1
+    ## GO:0007156 homophilic cell adhesion        3.971869 3.971869
+    ## GO:0060429 epithelium development          3.834578 3.834578
+    ## GO:0007610 behavior                        3.534089 3.534089
+    ## GO:0048729 tissue morphogenesis            3.498950 3.498950
+    ## GO:0002009 morphogenesis of an epithelium  3.429293 3.429293
+    ## GO:0016337 cell-cell adhesion              3.163087 3.163087
+
+-   Again, we can see that most of the pathways are involved in cell development
+
+### Section 4: Useing Reactome
+
+-   Outputting results from results as plain text by SYMBOL ID
+
+``` r
+sig_genes <- res[res$padj <= 0.05 & !is.na(res$padj), "symbol"]
+print(paste("Total number of significant genes:", length(sig_genes)))
+```
+
+    ## [1] "Total number of significant genes: 8151"
+
+-   Writing out plain text to file "significant\_genes.txt"
+
+``` r
+write.table(sig_genes, file="significant_genes.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+-   Analyze pathways by loading file to ![reactome](https://reactome.org/PathwayBrowser/#TOOL=AT)
