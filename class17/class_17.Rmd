@@ -1,0 +1,258 @@
+---
+title: "Class 17"
+author: "Gary Le"
+date:: "May 30th, 2018"
+output: github_document
+---
+
+* Loading Cytoscape 3 and testing connection.
+```{r}
+library(RCy3)
+library(igraph)
+library(RColorBrewer)
+
+cytoscapePing()
+cytoscapeVersionInfo()
+```
+
+* Importing sample data for network
+```{r}
+#Loading data from link
+prok_vir_cor <- read.delim("https://bioboot.github.io/bggn213_S18/class-material/virus_prok_cor_abundant.tsv", stringsAsFactors = FALSE)
+
+#Verifying head
+head(prok_vir_cor)
+```
+
+* Set data frame for graph
+```{r}
+g <- graph.data.frame(prok_vir_cor, directed = FALSE)
+
+# N.B. igraph needs to be loaded
+class(g)
+
+g
+
+# N.B. "UNW- 845 1544" means that the graph has 854 nodes, 1544 edges and is an Undirected, Named, and Weighted graph 
+```
+
+```{r}
+plot(g)
+
+# "This is a hot-mess! Lets turn of the blue text labels"
+# - Dr. Grant
+```
+
+```{r}
+plot(g, vertex.label=NA)
+
+# Still cheese balls.
+```
+
+```{r}
+plot(g, vertex.size=3, vertex.label=NA)
+```
+
+* Optionally, graph with ggplot
+```{r}
+library('ggraph')
+
+ggraph(g, layout = 'auto') +
+  geom_edge_link(alpha = 0.25) +
+  geom_node_point(color="lightblue")
+```
+
+* Accessing vertex and edge data with V() and E() respectively
+```{r}
+V(g)
+E(g)
+```
+
+* Detecting communities by measuring betweenness
+```{r}
+cb <- cluster_edge_betweenness(g) #Default is Girvan-Newman method
+cb
+```
+
+* Mapping communities onto network
+```{r}
+plot(cb, y=g, vertex.label=NA,  vertex.size=3)
+
+# Original plot for comparison
+plot(g, vertex.size=3, vertex.label=NA)
+
+```
+
+* membership() can be used to see which community each node is apart of
+```{r}
+head( membership(cb) )
+```
+
+* Other useful functions are to see the degrees in the network
+```{r}
+# Calculate and plot node degree of our network
+d <- degree(g)
+hist(d, breaks=30, col="lightblue", main ="Node Degree Distribution")
+```
+* As we can see, the histogram looks like a a scale-free network.
+
+```{r}
+plot( degree_distribution(g), type="h" )
+```
+
+*Now, we can take a look at centrality. This helps gauge the importantness of a node. Even Google uses it! We'll be using the Google PageRank method
+```{r}
+pr <- page_rank(g)
+head(pr$vector)
+```
+
+* Visualizing graph based on importance of nodes by centrality
+```{r}
+# Make a size vector btwn 2 and 20 for node plotting size
+library('BBmisc')
+v.size <- BBmisc::normalize(pr$vector, range=c(2,20), method="range")
+
+# Plotting with vertex size
+plot(g, vertex.size=v.size, vertex.label=NA)
+```
+
+* We can also visualize centrality with the easier metric of degrees each node has.
+```{r}
+# Setting vertex size on a distribution of [2,20] based off degrees
+v.size <- BBmisc::normalize(d, range=c(2,20), method="range")
+
+plot(g, vertex.size=v.size, vertex.label=NA)
+# Notice how some nodes change in importance/size while others don't
+```
+
+* A little more complex method is to use betweenness which, roughly, divides the shortest paths through a node by its edges.
+```{r}
+# Another useful and aptly named function.
+b <- betweenness(g)
+v.size <- BBmisc::normalize(b, range=c(2,20), method="range")
+
+plot(g, vertex.size=v.size, vertex.label=NA)
+# Note the drastic increase in size of the path linking the two neighborhoods on the right of the graph
+```
+
+### Annotating Network with Taxonomical Information
+```{r}
+# Loading in phage id data
+phage_id_affiliation <- read.delim("https://bioboot.github.io/bggn213_S18/class-material/phage_ids_with_affiliation.tsv")
+head(phage_id_affiliation)
+```
+
+```{r}
+# Loading in bacterial id data from SILVA DB
+bac_id_affi <- read.delim("https://bioboot.github.io/bggn213_S18/class-material/prok_tax_from_silva.tsv", stringsAsFactors = FALSE)
+head(bac_id_affi)
+```
+
+* Preparingnetwork for Cytoscape Visualization
+```{r}
+# Extract out our vertex names
+## The gene names are stored as the vertex attributes (this set only has names)
+genenet.nodes <- as.data.frame(vertex.attributes(g), stringsAsFactors=FALSE)
+
+head(genenet.nodes)
+```
+
+```{r}
+# Using grep to see how many phage nodes we have (Nodes that start with "ph_")
+length( grep("^ph_",genenet.nodes[,1]) )
+
+## 764 Phage nodes
+## 81 non-phage nodes
+```
+
+```{r}
+# Merging different columns to make a classification table
+
+# We dont need all annotation data so lets make a reduced table 'z' for merging
+z <- bac_id_affi[,c("Accession_ID", "Kingdom", "Phylum", "Class")]
+
+# Our final, merged table with 
+n <- merge(genenet.nodes, z, by.x="name", by.y="Accession_ID", all.x=TRUE)
+head(n)
+```
+    + All the Bacteria should be properly labeled now.
+
+    + Moving onto the more complicated phage IDs
+```{r}
+# Check on the column names before deciding what to merge i.e. what we have/need to use
+colnames(n)
+```
+
+```{r}
+# We only want the phages that match
+colnames(phage_id_affiliation)
+```
+
+```{r}
+# Again we only need a subset of `phage_id_affiliation` for our purposes
+y <- phage_id_affiliation[, c("first_sheet.Phage_id_network", "phage_affiliation","Tax_order", "Tax_subfamily")]
+
+# Add the little phage annotation that we have
+x <- merge(x=n, y=y, by.x="name", by.y="first_sheet.Phage_id_network", all.x=TRUE)
+
+## Remove duplicates from multiple matches
+x <- x[!duplicated( (x$name) ),]
+head(x)
+```
+```{r}
+# Storing our node data
+genenet.nodes <- x
+
+```
+
+* Final preparations for Cytoscape
+```{r}
+# Adding edge data from our graph "g""
+genenet.edges <- data.frame(igraph::as_edgelist(g))
+names(genenet.edges) <- c("source",
+                          "target")
+
+# Adding the edge weights which are just another edge attribute
+genenet.edges$Weight <- igraph::edge_attr(g)[[1]]
+
+# Adding the proper names; strictly specifiying type as character
+genenet.edges$source <- as.character(genenet.edges$source)
+genenet.edges$target <- as.character(genenet.edges$target)
+genenet.nodes$id <- as.character(genenet.nodes$name)
+
+# Final plot for Cytoscape. Takes a simple list of nodes and edges
+## N.B. RCy3 has been updated and cyPlot() is now a defunct fxn
+## Use this method instead to create Cytoscape Windos (cw)
+### The method takes data frames as inputs
+cw <- createNetworkFromDataFrames(nodes = as.data.frame(genenet.nodes), 
+                                  edges = as.data.frame(genenet.edges), 
+                                  title = "Tara Oceans")
+```
+
+* Coloring the graph 
+```{r}
+# N.B. English use of 'colour' vs 'color' b/c Dr. Grant is Irish
+families_to_colour <- unique(genenet.nodes$Phylum)
+families_to_colour <- families_to_colour[!is.na(families_to_colour)]
+
+node.colour <- RColorBrewer::brewer.pal(length(families_to_colour), "Set3")
+
+# Setting more color rules
+setNodeColorMapping("Phylum",
+                 families_to_colour,
+                 node.colour,
+                 "lookup",
+                 default.color = "#ffffff")
+```
+
+* Saving Image
+```{r}
+# exportImage(filename="net2",
+#           type="png",
+#           h=350)
+
+#Access Denied error in commandsPOST
+```
+
+
+
