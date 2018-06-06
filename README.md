@@ -1,37 +1,18 @@
-## Welcome to GitHub Pages
+## Welcome to Gary Le's Foundation to Bioinformatics Project Directory
 
-You can use the [editor on GitHub](https://github.com/ggle/bggn213/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+### Class R Project Repositories
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Below is a list of projects and work completed during the course BGGN213 in Spring 2018 at UC San Diego:
 
-### Markdown
+Not all classes had a relevant R project.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ggle/bggn213/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+- Class 05: [Data exploration and visualization in R](https://github.com/ggle/bggn213/blob/master/class05/class_5.md)
+- Class 06: [Why, when and how of writing your own R functions ](https://github.com/ggle/bggn213/blob/master/class06/class_6.md)
+- Class 07: [Bioinformatics R packages from CRAN and BioConductor](https://github.com/ggle/bggn213/blob/master/class07/class_7.md)
+- Class 08: [Introduction to Machine Learning for Bioinformatics](https://github.com/ggle/bggn213/blob/master/class08/class_8.md)
+- Class 09: [Unsupervised Learning Mini-Project](https://github.com/ggle/bggn213/blob/master/class09/class_9.md)
+- Class 11: [Structural Bioinformatics](https://github.com/ggle/bggn213/blob/master/class11/class_11.md)
+- Class 12: [Bioinformatics in drug discovery and design](https://github.com/ggle/bggn213/blob/master/class12/class_12.md)
+- Class 13: [Genome informatics and high throughput sequencing](https://github.com/ggle/bggn213/blob/master/class13/class_13.md)
+- Class 15: [Genome annotation and the interpretation of gene lists](https://github.com/ggle/bggn213/blob/master/class15/class_15.md)
+- Class 17: [Biological network analysis](https://github.com/ggle/bggn213/blob/master/class17/class_17.md)
